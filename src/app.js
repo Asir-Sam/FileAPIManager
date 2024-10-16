@@ -1,12 +1,14 @@
 const express = require('express');
+const cors = require('cors'); // Import the cors package
 const db = require('./db');
 const fileWatcher = require('./fileWatcher');
 const scheduler = require('./scheduler');
 const readXlsxFile = require('./readXlsx'); // Import the XLSX reading function
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3003;
 
+app.use(cors()); // Use the cors middleware
 app.use(express.json());
 
 app.get('/api/read-xlsx', (req, res) => {
@@ -39,13 +41,22 @@ app.post('/api/upload-xlsx', async (req, res) => {
     }
 });
 
+app.get('/api/customers', (req, res) => {
+    db.query('SELECT * FROM customer', (err, results) => {
+        if (err) {
+            return res.status(500).json({ error: err.message });
+        }
+        res.json(results);
+    });
+});
+
 const requiredFields = [
     'vehicle_number',
     'chasis_number',
     'permit_detail',
     'fc_detail',
     'tax_detail',
-    'tax_amount', 
+    'tax_amount',
     'puc_detail',
     'insurance_detail',
     'customer_name'
@@ -68,21 +79,21 @@ function normalizeData(data) {
         if (typeof row !== 'object' || row === null) {
             return requiredFields.reduce((acc, field) => ({ ...acc, [field]: null }), {});
         }
-        
+
         const normalizedRow = {};
         for (const [key, value] of Object.entries(row)) {
-            const normalizedKey = keyMap[key.trim().toUpperCase()]; 
+            const normalizedKey = keyMap[key.trim().toUpperCase()];
             if (normalizedKey) {
                 normalizedRow[normalizedKey] = value !== undefined ? value : null;
             }
         }
-        
+
         requiredFields.forEach(field => {
             if (!(field in normalizedRow)) {
                 normalizedRow[field] = null;
             }
         });
-        
+
         return normalizedRow;
     });
 }

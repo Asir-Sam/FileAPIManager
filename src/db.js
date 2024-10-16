@@ -19,6 +19,17 @@ connection.connect((err) => {
     }
 });
 
+function query(sql, params) {
+    return new Promise((resolve, reject) => {
+        connection.query(sql, params, (error, results) => {
+            if (error) {
+                return reject(error);
+            }
+            resolve(results);
+        });
+    });
+}
+
 function insertData(table, data) {
     if (!data || data.length === 0) {
         console.error('No data to insert');
@@ -52,4 +63,5 @@ function insertData(table, data) {
 module.exports = {
     connection,
     insertData,
+    query
 };

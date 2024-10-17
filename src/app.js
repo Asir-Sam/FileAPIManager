@@ -50,6 +50,23 @@ app.get('/api/customers', (req, res) => {
     });
 });
 
+app.get('/api/customers/summary', (req, res) => {
+    const query = `
+        SELECT 
+            fc_detail, 
+            customer_name, 
+            vehicle_number 
+        FROM customer;
+    `;
+    
+    db.query(query, (err, results) => {
+        if (err) {
+            return res.status(500).json({ error: err.message });
+        }
+        res.json(results);
+    });
+});
+
 const requiredFields = [
     'vehicle_number',
     'chasis_number',
